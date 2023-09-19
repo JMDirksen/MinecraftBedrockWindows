@@ -1,9 +1,8 @@
 function Main {
     Output "Start update"
-    Output "Loading db..."
-    if (Test-Path ".\update.db") { $db = Import-Clixml ".\update.db" }
-    else { $db = @{} }
-    Output "Running: $($db.version)"
+    Output "Loading current version..."
+    $currentversion = Get-Content ".\version.txt" -ErrorAction SilentlyContinue
+    Output "Running: $currentversion"
     Output "Reading Minecraft download page..."
     $request = @{
         "Uri"     = "https://www.minecraft.net/en-us/download/server/bedrock"
@@ -15,7 +14,7 @@ function Main {
     $filename = $downloadlink.Split("/")[-1]
     $version = $filename.Substring(15).Replace(".zip", "")
     Output "Online: $version"
-    if ($version -eq $db.version) {
+    if ($version -eq $currentversion) {
         Output "Done."
         exit
     }
@@ -39,9 +38,8 @@ function Main {
     Copy-Item -Path ".\tmp\*" -Destination ".\server" -Recurse -Force
     Output "Cleaning up..."
     Remove-Item ".\tmp" -Recurse -Force
-    Output "Updating db..."
-    $db.version = $version
-    $db | Export-Clixml ".\update.db"
+    Output "Updating current version..."
+    $version | Set-Content ".\version.txt"
     Output "Done."
 }
 
