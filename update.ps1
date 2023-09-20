@@ -14,7 +14,7 @@ function Main {
     $filename = $downloadlink.Split("/")[-1]
     $version = $filename.Substring(15).Replace(".zip", "")
     Output "Online: $version"
-    if ($version -eq $currentversion) {
+    if ( -not (isHigherVersion $version $currentversion) ) {
         Output "Done."
         exit
     }
@@ -41,6 +41,16 @@ function Main {
     Output "Updating current version..."
     $version | Set-Content ".\version.txt"
     Output "Done."
+}
+
+function isHigherVersion ($ThisVersion, $ReferenceVersion) {
+    $ver = $ThisVersion.Split(".")
+    $ref = $ReferenceVersion.Split(".")
+    for ($i = 0; $i -lt $ver.Count; $i++) {
+        if ([int]$ver[$i] -gt [int]$ref[$i]) { return $true }
+        if ([int]$ver[$i] -lt [int]$ref[$i]) { return $false }
+    }
+    return $false
 }
 
 function Output ($message) {
