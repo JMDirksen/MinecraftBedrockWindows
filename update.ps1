@@ -2,6 +2,7 @@ function Main {
     Output "Start update"
     Output "Loading current version..."
     $currentversion = Get-Content ".\version.txt" -ErrorAction SilentlyContinue
+    if (-not $currentversion) { $currentversion = "0" }
     Output "Running: $currentversion"
     Output "Reading Minecraft download page..."
     $request = @{
@@ -29,7 +30,7 @@ function Main {
     if (Test-Path ".\server\permissions.json") { Remove-Item ".\tmp\permissions.json" }
     if (Test-Path ".\server\server.properties") { Remove-Item ".\tmp\server.properties" }
     Output "Stopping process..."
-    Stop-Process -Name "bedrock_server" -Force
+    Stop-Process -Name "bedrock_server" -Force -ErrorAction SilentlyContinue
     if (-not (Test-Path ".\server")) {
         Output "Creating server directory..."
         New-Item -Path "." -Name "server" -ItemType Directory
