@@ -1,4 +1,6 @@
 function Main {
+
+    # Check for update
     Output "Start update"
     Output "Loading current version..."
     $currentversion = Get-Content ".\version.txt" -ErrorAction SilentlyContinue
@@ -19,22 +21,33 @@ function Main {
         Output "Done."
         exit
     }
+
+    # Download update
     if (-not (Test-Path $filename)) {
         Output "Downloading $filename..."
         Invoke-WebRequest -Uri $downloadlink -OutFile $filename
     }
+
+    # Extract / exclude
     Output "Extracting..."
     Expand-Archive $filename -DestinationPath "tmp"
-    Output "Removing unwanted files..."
-    if (Test-Path ".\server\allowlist.json") { Remove-Item ".\tmp\allowlist.json" }
-    if (Test-Path ".\server\permissions.json") { Remove-Item ".\tmp\permissions.json" }
-    if (Test-Path ".\server\server.properties") { Remove-Item ".\tmp\server.properties" }
+    Output "Excluding files..."
+    $exclude = "worlds", "server.properties", "allowlist.json", "permissions.json"
+    $exclude | ForEach-Object { if (Test-Path ".\server\$_") { Remove-Item ".\tmp\$_" -ErrorAction SilentlyContinue } }
+
+    # Stop process
     Output "Stopping process..."
     Stop-Process -Name "bedrock_server" -Force -ErrorAction SilentlyContinue
+    
+    # Create directory
     if (-not (Test-Path ".\server")) {
         Output "Creating server directory..."
         New-Item -Path "." -Name "server" -ItemType Directory
     }
+
+    # Removing / copying / cleaning up
+    Output "Removing files..."
+    Get-ChildItem -Path ".\server" -Exclude $exclude | Remove-Item -Recurse -Force
     Output "Copying files..."
     Copy-Item -Path ".\tmp\*" -Destination ".\server" -Recurse -Force
     Output "Cleaning up..."
