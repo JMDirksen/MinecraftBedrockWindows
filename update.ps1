@@ -26,7 +26,7 @@ function Main {
     Output "Extracting..."
     Expand-Archive $filename -DestinationPath "tmp"
     Output "Removing unwanted files..."
-    if (Test-Path ".\server\allowlit.json") { Remove-Item ".\tmp\allowlist.json" }
+    if (Test-Path ".\server\allowlist.json") { Remove-Item ".\tmp\allowlist.json" }
     if (Test-Path ".\server\permissions.json") { Remove-Item ".\tmp\permissions.json" }
     if (Test-Path ".\server\server.properties") { Remove-Item ".\tmp\server.properties" }
     Output "Stopping process..."
