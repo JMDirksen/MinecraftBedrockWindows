@@ -1,22 +1,19 @@
+$ErrorActionPreference = "Stop"
+
 function Main {
 
     # Check for update
     Output "Start update"
-    Output "Loading current version..."
+    Output "Checking running version..."
     $currentversion = Get-Content ".\version.txt" -ErrorAction SilentlyContinue
     if (-not $currentversion) { $currentversion = "0" }
-    Output "Running: $currentversion"
-    Output "Reading Minecraft download page..."
-    $request = @{
-        "Uri"     = "https://www.minecraft.net/en-us/download/server/bedrock"
-        "Headers" = @{ "Accept-Language" = "*" }
-    }
-    try { $page = Invoke-WebRequest @request -TimeoutSec 5 }
-    catch { $_.Exception.Message; exit }
-    $downloadlink = $page.Links.href | Where-Object { $_ -like "*/bin-win/bedrock-server-*.zip" }
-    $filename = $downloadlink.Split("/")[-1]
+    Output "Running version: $currentversion"
+    Output "Requesting Minecraft API for current version..."
+    $ApiDownloadLinks = Invoke-RestMethod -Uri "https://net.web.minecraft-services.net/api/v1.0/download/links" -UseBasicParsing
+    $DownloadUrl = ($ApiDownloadLinks.result.links | Where-Object {$_.downloadType -eq "serverBedrockWindows"}).downloadUrl
+    $filename = $DownloadUrl.Split("/")[-1]
     $version = $filename.Substring(15).Replace(".zip", "")
-    Output "Online: $version"
+    Output "Current version: $version"
     if ( -not (isHigherVersion $version $currentversion) ) {
         Output "Done."
         exit
@@ -25,7 +22,7 @@ function Main {
     # Download update
     if (-not (Test-Path $filename)) {
         Output "Downloading $filename..."
-        Invoke-WebRequest -Uri $downloadlink -OutFile $filename
+        Invoke-WebRequest -Uri $DownloadUrl -OutFile $filename
     }
 
     # Extract / exclude
